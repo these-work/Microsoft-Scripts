@@ -1,6 +1,9 @@
 # Define the destination path for exported drivers
 $destinationPath = "C:\ExportedDrivers"
 
+# Define the path for the DriverStore
+$driverStorePath = "C:\Windows\System32\DriverStore\FileRepository"
+
 # Create the destination directory if it does not exist
 if (-not (Test-Path -Path $destinationPath)) {
     New-Item -Path $destinationPath -ItemType Directory
@@ -11,16 +14,17 @@ $nonInboxDrivers = Get-WindowsDriver -Online | Where-Object { $_.Inbox -eq $fals
 
 # Process each non-inbox driver
 foreach ($driver in $nonInboxDrivers) {
-    # Define the driver folder path in the DriverStore
-    $driverFolder = Split-Path $driver.DriverStoreLocation -Parent
+    # Extract the driver folder name
+    $driverFolderName = Split-Path $driver.DriverStoreLocation -Leaf
 
-    # Define the destination folder for the driver
+    # Define the source and destination paths for the driver
+    $sourceDriverFolder = Join-Path -Path $driverStorePath -ChildPath $driverFolderName
     $destinationDriverFolder = Join-Path -Path $destinationPath -ChildPath $driver.PublishedName
 
-    # Copy the driver folder if it exists and is not empty
-    if (Test-Path -Path $driverFolder -PathType Container) {
+    # Copy the driver files if the source folder exists
+    if (Test-Path -Path $sourceDriverFolder) {
         New-Item -Path $destinationDriverFolder -ItemType Directory -Force
-        Copy-Item -Path "$driverFolder\*" -Destination $destinationDriverFolder -Recurse -Force
+        Copy-Item -Path "$sourceDriverFolder\*" -Destination $destinationDriverFolder -Recurse -Force
     }
 }
 
