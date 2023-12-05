@@ -1,0 +1,21 @@
+# Define the destination path for exported drivers
+$destinationPath = "C:\ExportedDrivers"
+
+# Create the destination directory if it does not exist
+if (-not (Test-Path -Path $destinationPath)) {
+    New-Item -Path $destinationPath -ItemType Directory
+}
+
+# Get all non-inbox drivers from the current online Windows image
+$nonInboxDrivers = Get-WindowsDriver -Online | Where-Object { $_.Inbox -eq $false }
+
+# Copy each non-inbox driver to the destination path
+foreach ($driver in $nonInboxDrivers) {
+    $source = $driver.DriverStoreLocation
+    $destination = Join-Path -Path $destinationPath -ChildPath ($driver.OriginalFileName)
+
+    Copy-Item -Path $source -Destination $destination -Recurse -Force
+}
+
+# Output completion message
+Write-Host "Non-inbox drivers have been exported to $destinationPath"
