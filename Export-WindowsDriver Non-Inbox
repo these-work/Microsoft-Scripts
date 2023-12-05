@@ -9,20 +9,18 @@ if (-not (Test-Path -Path $destinationPath)) {
 # Get all non-inbox drivers from the current online Windows image
 $nonInboxDrivers = Get-WindowsDriver -Online | Where-Object { $_.Inbox -eq $false }
 
-# Copy each non-inbox driver to the destination path
+# Process each non-inbox driver
 foreach ($driver in $nonInboxDrivers) {
-    # Check if the DriverStoreLocation is not null or empty
-    if (![string]::IsNullOrEmpty($driver.DriverStoreLocation)) {
-        $source = $driver.DriverStoreLocation
-        $destinationFolder = Join-Path -Path $destinationPath -ChildPath $driver.PublishedName
+    # Define the driver folder path in the DriverStore
+    $driverFolder = Split-Path $driver.DriverStoreLocation -Parent
 
-        # Create a directory for each driver
-        if (-not (Test-Path -Path $destinationFolder)) {
-            New-Item -Path $destinationFolder -ItemType Directory
-        }
+    # Define the destination folder for the driver
+    $destinationDriverFolder = Join-Path -Path $destinationPath -ChildPath $driver.PublishedName
 
-        # Copy the driver files
-        Copy-Item -Path "$source\*" -Destination $destinationFolder -Recurse -Force
+    # Copy the driver folder if it exists and is not empty
+    if (Test-Path -Path $driverFolder -PathType Container) {
+        New-Item -Path $destinationDriverFolder -ItemType Directory -Force
+        Copy-Item -Path "$driverFolder\*" -Destination $destinationDriverFolder -Recurse -Force
     }
 }
 
