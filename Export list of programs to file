@@ -1,0 +1,14 @@
+# PowerShell Script to List Installed Applications and Export to CSV
+
+# Define the output file path
+$outputFilePath = "C:\Installed_Applications.csv"
+
+# Retrieve the list of installed applications
+$installedApps = Get-WmiObject -Class Win32_Product | 
+                 Select-Object Name, Vendor, Version, InstallDate
+
+# Export the list to a CSV file
+$installedApps | Export-Csv -Path $outputFilePath -NoTypeInformation
+
+# Output the file path for confirmation
+Write-Host "Installed applications list exported to: $outputFilePath"
